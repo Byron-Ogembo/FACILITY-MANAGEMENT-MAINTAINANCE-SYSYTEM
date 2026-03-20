@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Equipment{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Equipment Registry</h1>
+    {% if can_manage %}
+    <a href="{{ url_for('equipment.add') }}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i> Add Equipment</a>
+    {% endif %}
+</div>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-dark table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                    <th>QR Code</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for eq in equipment %}
+                <tr>
+                    <td>#{{ "%04d" % eq.id }}</td>
+                    <td>{{ eq.name }}</td>
+                    <td>{{ eq.category }}</td>
+                    <td>{{ eq.location or '-' }}</td>
+                    <td>
+                        {% if eq.status == 'active' %}<span class="badge bg-success">Active</span>
+                        {% elif eq.status == 'faulty' %}<span class="badge bg-danger">Faulty</span>
+                        {% elif eq.status == 'under_maintenance' %}<span class="badge bg-warning">Under Maint.</span>
+                        {% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}
+                    </td>
+                    <td><a href="{{ url_for('equipment.qr_code', eq_id=eq.id) }}" target="_blank" class="btn btn-sm btn-outline-light"><i class="bi bi-qr-code"></i></a></td>
+                    <td>
+                        <a href="{{ url_for('equipment.history', eq_id=eq.id) }}" class="btn btn-sm btn-outline-info">History</a>
+                        {% if can_manage %}
+                        <a href="{{ url_for('equipment.edit', eq_id=eq.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <form method="POST" action="{{ url_for('equipment.delete_equipment', eq_id=eq.id) }}" class="d-inline" onsubmit="return confirm('Delete this equipment?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center text-muted">No equipment registered.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

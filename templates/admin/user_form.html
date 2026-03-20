@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if user else 'Add' }} Staff{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ 'Edit' if user else 'Add' }} Staff</h1>
+    <a href="{{ url_for('admin.users') }}" class="btn btn-secondary">Back</a>
+</div>
+<div class="card" style="max-width: 500px;">
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">Full Name *</label>
+                <input type="text" name="name" class="form-control" value="{{ user.name if user else '' }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Email *</label>
+                <input type="email" name="email" class="form-control" value="{{ user.email if user else '' }}" {{ 'readonly' if user else '' }} required>
+                {% if user %}<small class="text-muted">Email cannot be changed.</small>{% endif %}
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Role *</label>
+                <select name="role" class="form-select">
+                    <option value="Technician" {{ 'selected' if user and user.role=='Technician' else '' }}>Technician</option>
+                    <option value="Maintenance Manager" {{ 'selected' if user and user.role=='Maintenance Manager' else '' }}>Maintenance Manager</option>
+                    <option value="Store Manager" {{ 'selected' if user and user.role=='Store Manager' else '' }}>Store Manager</option>
+                    <option value="Admin" {{ 'selected' if user and user.role=='Admin' else '' }}>Admin</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password {{ '(leave blank to keep current)' if user else '*' }}</label>
+                <input type="password" name="password" class="form-control" {{ '' if user else 'required' }} minlength="6" placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a href="{{ url_for('admin.users') }}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

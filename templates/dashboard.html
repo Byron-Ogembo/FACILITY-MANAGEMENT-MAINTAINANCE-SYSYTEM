@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{% endblock %}
+{% block content %}
+<h1 class="mb-4">{% if role == 'Technician' %}My Tasks{% elif role == 'Store Manager' %}Store Overview{% else %}Dashboard Overview{% endif %}</h1>
+{% if role == 'Technician' and my_work_orders %}
+<div class="card mb-4 border-warning">
+    <div class="card-header"><i class="bi bi-clipboard-check me-2"></i>My Pending Work Orders</div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-dark table-sm mb-0">
+                <thead><tr><th>Title</th><th>Equipment</th><th>Priority</th><th>Actions</th></tr></thead>
+                <tbody>
+                    {% for wo in my_work_orders %}
+                    <tr>
+                        <td>{{ wo.title }}</td>
+                        <td>{{ wo.equipment_name or '-' }}</td>
+                        <td><span class="badge badge-priority-{{ wo.priority }}">{{ wo.priority }}</span></td>
+                        <td>
+                            <a href="{{ url_for('work_order.edit', wo_id=wo.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                            <form method="POST" action="{{ url_for('work_order.complete', wo_id=wo.id) }}" class="d-inline">
+                                <input type="hidden" name="maintenance_notes" value="">
+                                <button type="submit" class="btn btn-sm btn-success">Complete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <a href="{{ url_for('work_order.list_work_orders') }}" class="btn btn-outline-light btn-sm mt-2">View All My Work Orders</a>
+    </div>
+</div>
+{% endif %}
+{% if role in ['Technician', 'Maintenance Manager'] %}
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase small">Total Equipment</h6>
+                <h3 class="mb-0">{{ total_equipment }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase small">Active Work Orders</h6>
+                <h3 class="mb-0 text-warning">{{ active_work_orders }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase small">Completed Tasks</h6>
+                <h3 class="mb-0 text-success">{{ completed_work_orders }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase small">Faulty / Under Maint.</h6>
+                <h3 class="mb-0 text-danger">{{ faulty_equipment }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% if role == 'Store Manager' %}
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <a href="{{ url_for('inventory.list_inventory') }}" class="text-decoration-none">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase small">Total Parts</h6>
+                    <h3 class="mb-0">{{ total_parts }}</h3>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 {{ 'border-danger' if low_stock else '' }}">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase small">Low Stock Alerts</h6>
+                <h3 class="mb-0 {{ 'text-danger' if low_stock else 'text-success' }}">{{ low_stock|length }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% if role in ['Maintenance Manager'] %}
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Equipment by Status</div>
+            <div class="card-body"><canvas id="chartEquipment" height="200"></canvas></div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Work Orders by Status</div>
+            <div class="card-body"><canvas id="chartWorkOrders" height="200"></canvas></div>
+        </div>
+    </div>
+</div>
+{% endif %}
+<div class="row g-3 mt-2">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-exclamation-triangle text-warning me-2"></i>Low Stock Alerts <a href="{{ url_for('inventory.list_inventory') }}" class="float-end btn btn-sm btn-outline-light">View</a></div>
+            <div class="card-body">
+                {% if low_stock %}
+                <ul class="list-group list-group-flush">
+                    {% for p in low_stock[:5] %}
+                    <li class="list-group-item bg-transparent text-white border-secondary">{{ p.part_name }}: {{ p.quantity }} (reorder: {{ p.reorder_level }})</li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted mb-0">No low stock alerts.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-calendar-event text-info me-2"></i>Due Preventive Maintenance (7 days) {% if role in ['Admin','Maintenance Manager'] %}<a href="{{ url_for('maintenance.list_schedules') }}" class="float-end btn btn-sm btn-outline-light">View</a>{% endif %}</div>
+            <div class="card-body">
+                {% if due_maintenance %}
+                <ul class="list-group list-group-flush">
+                    {% for s in due_maintenance[:5] %}
+                    <li class="list-group-item bg-transparent text-white border-secondary">{{ s.equipment_name }}: {{ s.task_name }} ({{ s.next_due_date }})</li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted mb-0">No maintenance due soon.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+const eqData = {{ eq_by_status | tojson | safe }};
+const woData = {{ wo_by_status | tojson | safe }};
+const eqEl = document.getElementById('chartEquipment');
+const woEl = document.getElementById('chartWorkOrders');
+if (eqEl) {
+new Chart(eqEl, {
+    type: 'doughnut',
+    data: {
+        labels: eqData.map(r => r.status),
+        datasets: [{ data: eqData.map(r => r.count), backgroundColor: ['#238636','#da3633','#d29922','#8b949e'] }]
+    },
+    options: { responsive: true, plugins: { legend: { labels: { color: '#c9d1d9' } } } }
+});
+}
+if (woEl) {
+new Chart(woEl, {
+    type: 'bar',
+    data: {
+        labels: woData.map(r => r.status),
+        datasets: [{ label: 'Count', data: woData.map(r => r.count), backgroundColor: '#238636' }]
+    },
+    options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true, ticks: { color: '#8b949e' } }, x: { ticks: { color: '#8b949e' } } },
+        plugins: { legend: { display: false } }
+    }
+});
+}
+</script>
+{% endblock %}

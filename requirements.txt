@@ -1,0 +1,11 @@
+# TINDI CMMS - Factory Facility Equipment Maintenance Management System
+# Coca-Cola Plant Case Study
+
+Flask==3.0.0
+Werkzeug==3.0.1
+# SQLite is built-in (no extra package needed)
+# PDF export
+reportlab==4.0.7
+# QR code generation (server-side fallback)
+qrcode[pil]==7.4.2
+gunicorn

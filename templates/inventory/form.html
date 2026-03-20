@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if item else 'Add' }} Part{% endblock %}
+{% block content %}
+<h1 class="mb-4">{{ 'Edit' if item else 'Add' }} Inventory Part</h1>
+<div class="card" style="max-width: 600px;">
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">Part Name *</label>
+                <input type="text" name="part_name" class="form-control" value="{{ item.part_name if item else '' }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Part Number</label>
+                <input type="text" name="part_number" class="form-control" value="{{ item.part_number if item else '' }}">
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Quantity</label>
+                    <input type="number" name="quantity" class="form-control" min="0" value="{{ item.quantity if item else 0 }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Reorder Level</label>
+                    <input type="number" name="reorder_level" class="form-control" min="0" value="{{ item.reorder_level if item else 5 }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Unit</label>
+                    <input type="text" name="unit" class="form-control" value="{{ item.unit if item else 'Units' }}">
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Location</label>
+                <input type="text" name="location" class="form-control" value="{{ item.location if item else '' }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Supplier</label>
+                <input type="text" name="supplier" class="form-control" value="{{ item.supplier if item else '' }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Unit Cost</label>
+                <input type="number" name="unit_cost" class="form-control" step="0.01" min="0" value="{{ item.unit_cost if item else 0 }}">
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a href="{{ url_for('inventory.list_inventory') }}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

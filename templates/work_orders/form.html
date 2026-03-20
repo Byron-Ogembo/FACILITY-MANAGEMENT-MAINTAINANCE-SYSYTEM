@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if work_order else 'Create' }} Work Order{% endblock %}
+{% block content %}
+<h1 class="mb-4">{{ 'Edit' if work_order else 'Create' }} Work Order</h1>
+<div class="card" style="max-width: 600px;">
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">Title *</label>
+                <input type="text" name="title" class="form-control" value="{{ work_order.title if work_order else '' }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Equipment</label>
+                <select name="equipment_id" class="form-select">
+                    <option value="">-- Select Equipment --</option>
+                    {% for e in equipment %}
+                    <option value="{{ e.id }}" {{ 'selected' if work_order and work_order.equipment_id == e.id else '' }}>{{ e.name }} ({{ e.location or e.category }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Assigned To</label>
+                <select name="assigned_to" class="form-select">
+                    <option value="">-- Select Technician --</option>
+                    {% for t in technicians %}
+                    <option value="{{ t.id }}" {{ 'selected' if work_order and work_order.assigned_to == t.id else '' }}>{{ t.name }} ({{ t.role }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Priority</label>
+                <select name="priority" class="form-select">
+                    <option value="low" {{ 'selected' if work_order and work_order.priority=='low' else '' }}>Low</option>
+                    <option value="medium" {{ 'selected' if work_order and work_order.priority=='medium' else '' }}>Medium</option>
+                    <option value="high" {{ 'selected' if work_order and work_order.priority=='high' else '' }}>High</option>
+                    <option value="critical" {{ 'selected' if work_order and work_order.priority=='critical' else '' }}>Critical</option>
+                </select>
+            </div>
+            {% if work_order %}
+            <div class="mb-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="pending" {{ 'selected' if work_order.status=='pending' else '' }}>Pending</option>
+                    <option value="in_progress" {{ 'selected' if work_order.status=='in_progress' else '' }}>In Progress</option>
+                    <option value="completed" {{ 'selected' if work_order.status=='completed' else '' }}>Completed</option>
+                    <option value="cancelled" {{ 'selected' if work_order.status=='cancelled' else '' }}>Cancelled</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Maintenance Notes</label>
+                <textarea name="maintenance_notes" class="form-control" rows="3">{{ work_order.maintenance_notes or '' }}</textarea>
+            </div>
+            {% endif %}
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                <textarea name="description" class="form-control" rows="3">{{ work_order.description if work_order else '' }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a href="{{ url_for('work_order.list_work_orders') }}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if equipment else 'Add' }} Equipment{% endblock %}
+{% block content %}
+<h1 class="mb-4">{{ 'Edit' if equipment else 'Add' }} Equipment</h1>
+<div class="card" style="max-width: 600px;">
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">Name *</label>
+                <input type="text" name="name" class="form-control" value="{{ equipment.name if equipment else '' }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Category *</label>
+                <input type="text" name="category" class="form-control" placeholder="e.g. Bottling Machine, Conveyor" value="{{ equipment.category if equipment else '' }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Location</label>
+                <input type="text" name="location" class="form-control" value="{{ equipment.location if equipment else '' }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="active" {{ 'selected' if equipment and equipment.status=='active' else '' }}>Active</option>
+                    <option value="faulty" {{ 'selected' if equipment and equipment.status=='faulty' else '' }}>Faulty</option>
+                    <option value="under_maintenance" {{ 'selected' if equipment and equipment.status=='under_maintenance' else '' }}>Under Maintenance</option>
+                    <option value="inactive" {{ 'selected' if equipment and equipment.status=='inactive' else '' }}>Inactive</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Serial Number</label>
+                <input type="text" name="serial_number" class="form-control" value="{{ equipment.serial_number if equipment else '' }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Notes</label>
+                <textarea name="notes" class="form-control" rows="2">{{ equipment.notes if equipment else '' }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a href="{{ url_for('equipment.list_equipment') }}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Equipment History{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>History: {{ equipment.name }}</h1>
+    <a href="{{ url_for('equipment.list_equipment') }}" class="btn btn-secondary">Back to Equipment</a>
+</div>
+<div class="card mb-3">
+    <div class="card-body">
+        <strong>Category:</strong> {{ equipment.category }} | <strong>Location:</strong> {{ equipment.location or '-' }} | <strong>Status:</strong> {{ equipment.status }}
+    </div>
+</div>
+<div class="card">
+    <div class="card-header">History Log</div>
+    <ul class="list-group list-group-flush">
+        {% for h in history %}
+        <li class="list-group-item bg-transparent text-white border-secondary">
+            <span class="badge bg-secondary">{{ h.action }}</span> {{ h.description or '' }}
+            <span class="text-muted small float-end">{{ h.created_at }} {% if h.performed_by_name %}by {{ h.performed_by_name }}{% endif %}</span>
+        </li>
+        {% else %}
+        <li class="list-group-item bg-transparent text-muted">No history entries.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

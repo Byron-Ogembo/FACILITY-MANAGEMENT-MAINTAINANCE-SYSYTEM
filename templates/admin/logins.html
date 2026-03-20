@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Login Activity{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Login Activity</h1>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">Back to Admin</a>
+</div>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-dark table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Signed In</th>
+                    <th>First Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for l in logins %}
+                <tr>
+                    <td>{{ l.name }}</td>
+                    <td>{{ l.email }}</td>
+                    <td><span class="badge bg-secondary">{{ l.role }}</span></td>
+                    <td>{{ l.login_at }}</td>
+                    <td>{% if l.is_first_login %}<span class="badge bg-success">Yes</span>{% else %}-{% endif %}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-center text-muted">No login activity.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

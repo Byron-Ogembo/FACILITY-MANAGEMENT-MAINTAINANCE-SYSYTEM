@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{% endblock %}
+{% block content %}
+<h1 class="mb-4">Reports & Analytics</h1>
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase small">MTTR (Mean Time To Repair)</h6>
+                <h3 class="mb-0">{{ mttr }} <span class="fs-6 text-muted">hrs</span></h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase small">MTBF (Mean Time Between Failures)</h6>
+                <h3 class="mb-0">{{ mtbf }} <span class="fs-6 text-muted">days</span></h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase small">Total Equipment</h6>
+                <h3 class="mb-0">{{ total_equipment }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase small">Completed Work Orders</h6>
+                <h3 class="mb-0 text-success">{{ completed_work_orders }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Downtime by Category</div>
+            <div class="card-body"><canvas id="chartDowntime" height="200"></canvas></div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Work Orders by Priority</div>
+            <div class="card-body"><canvas id="chartPriority" height="200"></canvas></div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header">Export Reports</div>
+    <div class="card-body">
+        <a href="{{ url_for('reports.export_csv', type='work_orders') }}" class="btn btn-outline-light me-2"><i class="bi bi-file-earmark-spreadsheet me-1"></i> Export Work Orders (CSV)</a>
+        <a href="{{ url_for('reports.export_csv', type='equipment') }}" class="btn btn-outline-light me-2"><i class="bi bi-file-earmark-spreadsheet me-1"></i> Export Equipment (CSV)</a>
+        <a href="{{ url_for('reports.export_csv', type='inventory') }}" class="btn btn-outline-light me-2"><i class="bi bi-file-earmark-spreadsheet me-1"></i> Export Inventory (CSV)</a>
+        <a href="{{ url_for('reports.export_pdf', type='summary') }}" class="btn btn-outline-danger"><i class="bi bi-file-earmark-pdf me-1"></i> Export Summary (PDF)</a>
+    </div>
+</div>
+<script>
+const downtimeData = {{ downtime_by_cat | tojson | safe }};
+const priorityData = {{ wo_by_priority | tojson | safe }};
+new Chart(document.getElementById('chartDowntime'), {
+    type: 'bar',
+    data: {
+        labels: downtimeData.map(r => r.category),
+        datasets: [{ label: 'Completed Work Orders', data: downtimeData.map(r => r.count), backgroundColor: '#238636' }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+});
+new Chart(document.getElementById('chartPriority'), {
+    type: 'doughnut',
+    data: {
+        labels: priorityData.map(r => r.priority),
+        datasets: [{ data: priorityData.map(r => r.count), backgroundColor: ['#238636','#d29922','#da3633','#f85149'] }]
+    },
+    options: { responsive: true }
+});
+</script>
+{% endblock %}
