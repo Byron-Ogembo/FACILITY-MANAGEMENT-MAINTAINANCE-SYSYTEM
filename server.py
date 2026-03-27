@@ -3,7 +3,7 @@ import socketserver
 import json
 import os
 import urllib.parse
-from database import init_db, execute_query
+from database.db import init_db, execute_query 
 PORT = 8000
 
 class CMMSRequestHandler(http.server.SimpleHTTPRequestHandler):
@@ -105,9 +105,12 @@ class CMMSRequestHandler(http.server.SimpleHTTPRequestHandler):
             if path == '/api/login':
                 email = payload.get('email')
                 password = payload.get('password')
-                user = execute_query("SELECT id, name, email, role FROM users WHERE email=? AND password=?", (email, password), fetch_one=True)
-                if user:
-                    self._send_json_response({"success": True, "user": user})
+                import sys
+                sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+                from app.utils.security import verify_password
+                user = execute_query("SELECT id, name, email, role, password_hash FROM users WHERE email=?", (email,), fetch_one=True)
+                if user and verify_password(user['password_hash'], password):
+                    self._send_json_response({"success": True, "user": {"id": user['id'], "name": user['name'], "email": user['email'], "role": user['role']}})
                 else:
                     self._send_json_response({"success": False, "error": "Invalid credentials"}, status=401)
             elif path == '/api/equipment':
