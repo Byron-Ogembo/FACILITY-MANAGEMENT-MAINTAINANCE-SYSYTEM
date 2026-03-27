@@ -16,6 +16,7 @@
                 <tr>
                     <th>Name</th>
                     <th>Email</th>
+                    <th>Password</th>
                     <th>Role</th>
                     <th>Status</th>
                     <th>Actions</th>
@@ -26,6 +27,7 @@
                 <tr>
                     <td>{{ u.name }}</td>
                     <td>{{ u.email }}</td>
+                    <td class="user-select-all font-monospace small"><span class="badge bg-dark border text-light">{{ u.password }}</span></td>
                     <td><span class="badge bg-secondary">{{ u.role }}</span></td>
                     <td>{% if u.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-danger">Inactive</span>{% endif %}</td>
                     <td>
@@ -44,7 +46,7 @@
                     </td>
                 </tr>
                 {% else %}
-                <tr><td colspan="5" class="text-center text-muted">No users.</td></tr>
+                <tr><td colspan="6" class="text-center text-muted">No users.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
