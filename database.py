@@ -79,7 +79,7 @@ def init_db():
     # Insert default admin user if not exists
     cursor.execute("SELECT id FROM users WHERE email='admin@cmms.com'")
     if not cursor.fetchone():
-        cursor.execute("INSERT INTO users (name, email, password, role) VALUES ('Admin', 'admin@cmms.com', 'admin123', 'Maintenance Manager')")
+        cursor.execute("INSERT INTO users (name, email, password, role) VALUES ('Admin', 'admin@cmms.com', 'admin@123', 'Maintenance Manager')")
         
     conn.commit()
     conn.close()

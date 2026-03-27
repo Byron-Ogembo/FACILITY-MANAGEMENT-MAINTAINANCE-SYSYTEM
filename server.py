@@ -4,7 +4,6 @@ import json
 import os
 import urllib.parse
 from database import init_db, execute_query
-
 PORT = 8000
 
 class CMMSRequestHandler(http.server.SimpleHTTPRequestHandler):
