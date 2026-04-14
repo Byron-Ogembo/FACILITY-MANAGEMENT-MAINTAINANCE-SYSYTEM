@@ -9,93 +9,161 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
         :root {
             --sidebar-width: 250px;
+            --glass-bg: rgba(255, 255, 255, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.8);
+            --accent-glow: rgba(99, 102, 241, 0.4);
+        }
+
+        body {
+            background-color: #f8fafc;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(28,100%,74%,0.25) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, hsla(189,100%,56%,0.25) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, hsla(340,100%,76%,0.25) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, hsla(242,100%,70%,0.25) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #1e293b;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
         }
 
         .sidebar {
             min-height: 100vh;
-            background: #1a1d21;
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-right: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
         }
 
         .sidebar .nav-link {
-            color: #adb5bd;
+            color: #475569;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
         }
 
         .sidebar .nav-link:hover,
         .sidebar .nav-link.active {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+            transform: translateX(6px);
+            box-shadow: 0 4px 15px var(--accent-glow);
         }
 
         .main-content {
             margin-left: var(--sidebar-width);
             min-height: 100vh;
-            background: #0d1117;
-            color: #c9d1d9;
+            background: transparent;
         }
 
         .card {
-            background: #161b22;
-            border: 1px solid #30363d;
-            color: #c9d1d9;
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            color: #1e293b;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
         }
 
         .table {
-            color: #c9d1d9;
+            color: #1e293b;
+            vertical-align: middle;
         }
 
         .table-dark {
-            --bs-table-bg: #161b22;
-            --bs-table-border-color: #30363d;
+            --bs-table-bg: transparent;
+            --bs-table-color: #1e293b;
+            --bs-table-border-color: #cbd5e1;
+            --bs-table-striped-bg: rgba(0, 0, 0, 0.02);
+            --bs-table-striped-color: #1e293b;
+            --bs-table-hover-bg: rgba(0, 0, 0, 0.04);
+            --bs-table-hover-color: #1e293b;
+            color: #1e293b;
+            border-color: #cbd5e1;
         }
 
-        .navbar-dark {
-            background: #161b22 !important;
-            border-bottom: 1px solid #30363d;
+        .navbar-custom {
+            background: var(--glass-bg) !important;
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--glass-border);
+            z-index: 1030;
         }
 
         .brand-gradient {
-            background: linear-gradient(135deg, #58a6ff 0%, #a371f7 100%);
+            background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
+            text-shadow: none;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #238636 0%, #2ea043 100%);
+            background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
             border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            color: #ffffff;
+            transition: all 0.3s ease;
         }
 
-        .badge-priority-low {
-            background: #238636;
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px var(--accent-glow);
+            background: linear-gradient(135deg, #4f46e5 0%, #db2777 100%);
+            color: #ffffff;
         }
 
-        .badge-priority-medium {
-            background: #d29922;
+        /* Priorities & Badges */
+        .badge {
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        
+        .badge-priority-low { background: linear-gradient(135deg, #238636 0%, #2ea043 100%); }
+        .badge-priority-medium { background: linear-gradient(135deg, #d29922 0%, #e3b341 100%); color: #000; }
+        .badge-priority-high { background: linear-gradient(135deg, #da3633 0%, #f85149 100%); }
+        .badge-priority-critical { 
+            background: linear-gradient(135deg, #f85149 0%, #ff7b72 100%); 
+            box-shadow: 0 0 12px rgba(248,81,73,0.6);
+            animation: pulse-critical 2s infinite;
         }
 
-        .badge-priority-high {
-            background: #da3633;
-        }
-
-        .badge-priority-critical {
-            background: #f85149;
+        @keyframes pulse-critical {
+            0% { box-shadow: 0 0 0 0 rgba(248,81,73, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(248,81,73, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(248,81,73, 0); }
         }
     </style>
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    <meta name="theme-color" content="#161b22">
+    <meta name="theme-color" content="#f1f5f9">
     {% block head %}{% endblock %}
 </head>
 
 <body>
     {% if current_user %}
-    <nav class="navbar navbar-expand-lg navbar-dark">
+    <nav class="navbar navbar-expand-lg navbar-light navbar-custom">
         <div class="container-fluid">
             <a class="navbar-brand brand-gradient fw-bold" href="{{ url_for('main.dashboard') }}">TINDI CMMS</a>
             <span class="text-muted small">Coca-Cola Plant</span>
             <div class="ms-auto d-flex align-items-center">
                 <div class="dropdown me-3">
-                    <a class="text-white position-relative" href="#" data-bs-toggle="dropdown">
+                    <a class="text-dark position-relative" href="#" data-bs-toggle="dropdown">
                         <i class="bi bi-bell fs-5"></i>
                         {% if notifications and notifications|length > 0 %}
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{{
@@ -111,9 +179,9 @@
                         {% endif %}
                     </ul>
                 </div>
-                <span class="text-muted me-2">{{ current_user.name }}</span>
+                <span class="text-dark me-2">{{ current_user.name }}</span>
                 <span class="badge bg-secondary">{{ current_user.role }}</span>
-                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-light btn-sm ms-2">Logout</a>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-primary btn-sm ms-2">Logout</a>
             </div>
         </div>
     </nav>
@@ -172,6 +240,7 @@
     {% else %}
     {% block full_page %}{% endblock %}
     {% endif %}
+    {% include 'chatbot_widget.html' %}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
@@ -181,6 +250,42 @@
                     .catch((err) => console.log('Service worker registration failed:', err));
             });
         }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const userId = "{% if current_user %}{{ current_user.id }}{% else %}''{% endif %}";
+            if (userId) {
+                const socket = io();
+                socket.on('connect', () => {
+                    socket.emit('join', {'room': userId});
+                });
+                socket.on('new_notification', (data) => {
+                    // Create beautiful toast notification
+                    const toast = document.createElement("div");
+                    toast.className = `alert alert-${data.type === 'info' ? 'primary' : data.type} alert-dismissible fade show shadow-lg position-fixed`;
+                    toast.style.top = "20px";
+                    toast.style.right = "20px";
+                    toast.style.zIndex = "9999";
+                    toast.innerHTML = `<strong>${data.title}</strong><br>${data.message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+                    document.body.appendChild(toast);
+                    
+                    // Increment badge count
+                    const badge = document.querySelector('.bi-bell + .badge');
+                    if (badge) {
+                        badge.innerText = parseInt(badge.innerText) + 1;
+                    } else {
+                        // Create badge if not exists
+                        const dropParent = document.querySelector('.bi-bell').parentElement;
+                        const newBadge = document.createElement('span');
+                        newBadge.className = "position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger";
+                        newBadge.innerText = "1";
+                        dropParent.appendChild(newBadge);
+                    }
+                    setTimeout(() => toast.remove(), 5000);
+                });
+            }
+        });
     </script>
     {% block scripts %}{% endblock %}
 </body>

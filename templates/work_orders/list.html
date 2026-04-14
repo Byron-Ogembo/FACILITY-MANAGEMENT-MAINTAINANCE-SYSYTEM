@@ -25,7 +25,7 @@
             <tbody>
                 {% for wo in work_orders %}
                 <tr>
-                    <td>WO-{{ "%04d" % wo.id }}</td>
+                    <td class="fw-bold brand-gradient">TICK-{{ wo.date_created|replace('-', '') }}-{{ "%04d" % wo.id }}</td>
                     <td>{{ wo.title }}</td>
                     <td>{{ wo.equipment_name or '-' }}</td>
                     <td>{{ wo.assigned_to_name or '-' }}</td>

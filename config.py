@@ -8,6 +8,10 @@ import os
 # Base directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# Load env variables
+from dotenv import load_dotenv
+load_dotenv(os.path.join(BASE_DIR, '.env'))
+
 # SQLite database
 DATABASE = os.path.join(BASE_DIR, 'instance', 'cmms.db')
 # Ensure instance folder exists

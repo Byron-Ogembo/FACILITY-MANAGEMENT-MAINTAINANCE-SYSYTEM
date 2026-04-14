@@ -9,3 +9,9 @@ reportlab==4.0.7
 # QR code generation (server-side fallback)
 qrcode[pil]==7.4.2
 gunicorn
+python-dotenv==1.0.1
+requests==2.31.0
+Flask-SocketIO==5.3.6
+python-engineio==4.8.0
+python-socketio==5.10.0
+Flask-Mail==0.9.1

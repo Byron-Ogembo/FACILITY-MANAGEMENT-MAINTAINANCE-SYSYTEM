@@ -8,10 +8,20 @@ from database.db import execute_query
 
 def create(user_id, title, message, type='info'):
     """Create notification."""
-    return execute_query(
+    notif_id = execute_query(
         "INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)",
         (user_id, title, message, type)
     )
+    try:
+        from app.app import socketio
+        socketio.emit('new_notification', {
+            'title': title, 
+            'message': message,
+            'type': type
+        }, room=str(user_id))
+    except Exception as e:
+        print(f"SocketIO err: {e}")
+    return notif_id
 
 
 def get_unread(user_id):

@@ -44,8 +44,24 @@ def add():
             flash('Title is required.', 'danger')
             return redirect(url_for('work_order.add'))
         wo_id = create(equipment_id, assigned_to, title, description, priority, 'pending', session.get('user_id'))
+        if not assigned_to:
+            from app.services.assignment_service import assign_technician
+            auto_assigned = assign_technician(wo_id)
+            if auto_assigned:
+                assigned_to = auto_assigned
+                flash('Technician automatically assigned based on workload.', 'info')
+        
         if assigned_to:
             create_notification(assigned_to, 'New Work Order', f'You were assigned: {title}', 'info')
+            
+            # Send Email Asynchronously
+            from app.models.user import get_by_id as get_user
+            user_data = get_user(assigned_to)
+            if user_data and user_data.get('email'):
+                from app.services.notification_service import send_assignment_email
+                import threading
+                threading.Thread(target=send_assignment_email, args=(user_data['email'], {'title': title, 'priority': priority})).start()
+                
         audit_log(session['user_id'], 'CREATE', 'work_order', wo_id, new_value=title)
         flash('Work order created successfully.', 'success')
         return redirect(url_for('work_order.list_work_orders'))

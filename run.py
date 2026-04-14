@@ -18,7 +18,7 @@ if __name__ == '__main__':
     print("Initializing database...")
     init_db()
     print("Starting TINDI CMMS server...")
-    from app.app import create_app
+    from app.app import create_app, socketio
     app = create_app()
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    socketio.run(app, host='0.0.0.0', port=port, debug=True, allow_unsafe_werkzeug=True)

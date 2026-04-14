@@ -3,7 +3,7 @@ import socketserver
 import json
 import os
 import urllib.parse
-from database.db import init_db, execute_query 
+from database.db import init_db, execute_query  
 PORT = 8000
 
 class CMMSRequestHandler(http.server.SimpleHTTPRequestHandler):
