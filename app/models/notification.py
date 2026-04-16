@@ -6,19 +6,15 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 from database.db import execute_query
 
 
-def create(user_id, title, message, type='info'):
+def create(user_id, title, message, type='info', task_id=None, channel='in-app', status='pending'):
     """Create notification."""
     notif_id = execute_query(
-        "INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)",
-        (user_id, title, message, type)
+        "INSERT INTO notifications (user_id, title, message, type, task_id, channel, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (user_id, title, message, type, task_id, channel, status)
     )
     try:
-        from app.app import socketio
-        socketio.emit('new_notification', {
-            'title': title, 
-            'message': message,
-            'type': type
-        }, room=str(user_id))
+        from app.services.notification_service import emit_realtime_notification
+        emit_realtime_notification(user_id=user_id, message=message, title=title, n_type=type)
     except Exception as e:
         print(f"SocketIO err: {e}")
     return notif_id
@@ -48,3 +44,7 @@ def mark_read(notif_id):
 def mark_all_read(user_id):
     """Mark all notifications as read for user."""
     execute_query("UPDATE notifications SET is_read = 1 WHERE user_id = ?", (user_id,))
+
+def delete(notif_id):
+    """Delete a notification."""
+    execute_query("DELETE FROM notifications WHERE id = ?", (notif_id,))

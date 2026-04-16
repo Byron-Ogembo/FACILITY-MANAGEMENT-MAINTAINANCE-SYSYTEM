@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const msgDiv = document.createElement("div");
         msgDiv.className = "message typing-indicator";
         msgDiv.id = "chatbot-typing";
-        msgDiv.innerText = "Typing...";
+        msgDiv.innerText = "Philron Assistant is typing...";
         messagesContainer.appendChild(msgDiv);
         scrollToBottom();
     }

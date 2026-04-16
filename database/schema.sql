@@ -154,12 +154,16 @@ CREATE INDEX IF NOT EXISTS idx_schedule_next_due ON maintenance_schedule(next_du
 CREATE TABLE IF NOT EXISTS notifications (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
+    task_id INTEGER,
     title TEXT NOT NULL,
     message TEXT,
     type TEXT DEFAULT 'info',
+    channel TEXT DEFAULT 'in-app' CHECK(channel IN ('in-app', 'email', 'sms')),
+    status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'sent', 'failed')),
     is_read INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (task_id) REFERENCES work_orders(id) ON DELETE SET NULL
 );
 CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
 

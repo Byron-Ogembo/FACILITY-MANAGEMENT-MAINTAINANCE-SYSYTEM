@@ -32,7 +32,10 @@ def create_app():
     def on_join(data):
         from flask_socketio import join_room
         room = str(data.get('room'))
+        role = str(data.get('role', ''))
         join_room(room)
+        if role and role != 'None':
+            join_room(role)
 
     # Register blueprints
     from app.routes import auth_bp, main_bp, equipment_bp, work_order_bp, inventory_bp, maintenance_bp, reports_bp, api_bp, audit_bp, admin_bp

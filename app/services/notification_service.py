@@ -47,3 +47,30 @@ def send_status_update_email(client_email, ticket_info):
     except Exception as e:
         print("Mail error:", e)
         return False
+
+import datetime
+
+def emit_realtime_notification(user_id=None, role=None, message="", title="Alert", n_type="info", broadcast=False):
+    """
+    Broadcasts real-time WebSockets notifications safely and robustly.
+    Can target an explicit user_id, an entire access role, or global broadcast.
+    """
+    from flask import current_app
+    try:
+        from app.app import socketio
+        payload = {
+            'title': title,
+            'message': message,
+            'type': n_type,
+            'timestamp': datetime.datetime.now().isoformat()
+        }
+        if broadcast:
+            socketio.emit('new_notification', payload)
+        elif role:
+            socketio.emit('new_notification', payload, to=role)
+        elif user_id:
+            socketio.emit('new_notification', payload, to=str(user_id))
+    except RuntimeError:
+        pass # Ignore in scenarios without application context or during test booting
+    except Exception as e:
+        print(f"SocketIO Broadcasting Err: {e}")

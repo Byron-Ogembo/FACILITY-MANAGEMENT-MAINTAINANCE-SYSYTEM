@@ -163,22 +163,45 @@
             <span class="text-muted small">Coca-Cola Plant</span>
             <div class="ms-auto d-flex align-items-center">
                 <div class="dropdown me-3">
-                    <a class="text-dark position-relative" href="#" data-bs-toggle="dropdown">
-                        <i class="bi bi-bell fs-5"></i>
+                    <a class="text-dark position-relative" href="#" data-bs-toggle="dropdown" aria-expanded="false" id="notifDropdown">
+                        <i class="bi bi-bell{% if notifications and notifications|length > 0 %}-fill{% endif %} fs-5" style="{% if notifications and notifications|length > 0 %}color: #6366f1;{% endif %}"></i>
                         {% if notifications and notifications|length > 0 %}
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{{
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.6rem;">{{
                             notifications|length }}</span>
                         {% endif %}
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        {% for n in notifications[:5] %}
-                        <li><a class="dropdown-item" href="#">{{ n.title }}: {{ n.message[:50] }}...</a></li>
-                        {% endfor %}
-                        {% if not notifications %}
-                        <li><span class="dropdown-item text-muted">No new notifications</span></li>
-                        {% endif %}
-                    </ul>
+                    <div class="dropdown-menu dropdown-menu-end p-0 shadow" style="min-width: 320px; border-radius:12px; overflow:hidden; border: 1px solid rgba(99,102,241,0.2);">
+                        <div class="px-3 py-2 d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg,#6366f1,#ec4899); color:white;">
+                            <strong style="font-size:0.9rem;"><i class="bi bi-bell-fill me-1"></i> Notifications</strong>
+                            {% if notifications %}
+                            <a href="#" class="text-white text-decoration-none" style="font-size:0.75rem; opacity:0.85;" onclick="event.preventDefault(); fetch('/api/notifications/read-all', {method:'POST'}).then(()=>location.reload());">Mark all read</a>
+                            {% endif %}
+                        </div>
+                        <div style="max-height:280px; overflow-y:auto;">
+                            {% for n in notifications[:8] %}
+                            <a href="#" class="d-flex align-items-start px-3 py-2 text-decoration-none border-bottom notif-item" style="color:#1e293b; gap:10px;" data-id="{{ n.id }}">
+                                <span class="mt-1">
+                                    {% if n.type == 'critical' %}<i class="bi bi-exclamation-octagon-fill text-danger"></i>
+                                    {% elif n.type == 'warning' %}<i class="bi bi-exclamation-triangle-fill text-warning"></i>
+                                    {% else %}<i class="bi bi-info-circle-fill text-primary"></i>{% endif %}
+                                </span>
+                                <div>
+                                    <div style="font-size:0.8rem; font-weight:600;">{{ n.title }}</div>
+                                    <div style="font-size:0.75rem; color:#64748b;">{{ n.message[:60] }}{% if n.message|length > 60 %}...{% endif %}</div>
+                                    <div style="font-size:0.7rem; color:#94a3b8; margin-top:2px;"><i class="bi bi-clock me-1"></i>{{ n.created_at if n.created_at else 'Just now' }}</div>
+                                </div>
+                            </a>
+                            {% endfor %}
+                            {% if not notifications %}
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-bell-slash fs-4 d-block mb-1"></i>
+                                <small>No new notifications</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
+
                 <span class="text-dark me-2">{{ current_user.name }}</span>
                 <span class="badge bg-secondary">{{ current_user.role }}</span>
                 <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-primary btn-sm ms-2">Logout</a>
@@ -191,7 +214,7 @@
             <nav class="nav flex-column p-3">
                 <a class="nav-link rounded"
                     href="{{ url_for('admin.dashboard') if current_user.role == 'Admin' else url_for('main.dashboard') }}"><i
-                        class="bi bi-speedometer2 me-2"></i> Dashboard</a>
+                        class="bi bi-grid-1x2-fill me-2"></i> Dashboard</a>
                 {% if current_user.role in ['Admin', 'Maintenance Manager', 'Technician'] %}
                 <a class="nav-link rounded" href="{{ url_for('equipment.list_equipment') }}"><i
                         class="bi bi-gear me-2"></i> Equipment</a>
@@ -263,11 +286,18 @@
                 socket.on('new_notification', (data) => {
                     // Create beautiful toast notification
                     const toast = document.createElement("div");
-                    toast.className = `alert alert-${data.type === 'info' ? 'primary' : data.type} alert-dismissible fade show shadow-lg position-fixed`;
+                    let typeClass = data.type === 'info' ? 'primary' : data.type;
+                    if (data.type === 'critical') typeClass = 'danger'; // Map critical to Bootstrap Danger
+                    
+                    toast.className = `alert alert-${typeClass} alert-dismissible fade show shadow-lg position-fixed`;
                     toast.style.top = "20px";
                     toast.style.right = "20px";
                     toast.style.zIndex = "9999";
-                    toast.innerHTML = `<strong>${data.title}</strong><br>${data.message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+                    
+                    // Parse timestamp
+                    const timeStr = data.timestamp ? new Date(data.timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
+                    
+                    toast.innerHTML = `<strong>${data.title}</strong><small class="float-end text-muted ms-3 opacity-75">${timeStr}</small><br>${data.message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
                     document.body.appendChild(toast);
                     
                     // Increment badge count
@@ -283,6 +313,25 @@
                         dropParent.appendChild(newBadge);
                     }
                     setTimeout(() => toast.remove(), 5000);
+                });
+                
+                // Add individual read handlers
+                document.querySelectorAll('.notif-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const notifId = item.getAttribute('data-id');
+                        fetch(`/api/notifications/${notifId}/read`, {method: 'PUT'})
+                        .then(() => {
+                            // Visually remove it or decrease count
+                            item.style.opacity = '0.5';
+                            const badge = document.querySelector('.bi-bell + .badge');
+                            if (badge) {
+                                const newCount = parseInt(badge.innerText) - 1;
+                                if (newCount > 0) badge.innerText = newCount;
+                                else badge.remove();
+                            }
+                        });
+                    });
                 });
             }
         });

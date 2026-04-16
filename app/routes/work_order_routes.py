@@ -62,6 +62,9 @@ def add():
                 import threading
                 threading.Thread(target=send_assignment_email, args=(user_data['email'], {'title': title, 'priority': priority})).start()
                 
+        from app.services.notification_service import emit_realtime_notification
+        emit_realtime_notification(broadcast=True, title='New Work Order Alert', message=f'A new work order was created: {title}', n_type='warning')
+        
         audit_log(session['user_id'], 'CREATE', 'work_order', wo_id, new_value=title)
         flash('Work order created successfully.', 'success')
         return redirect(url_for('work_order.list_work_orders'))
