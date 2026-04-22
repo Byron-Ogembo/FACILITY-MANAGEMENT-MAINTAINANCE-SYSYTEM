@@ -8,3 +8,13 @@ env/
 venv/
 .DS_Store
 .vscode/
+
+# Database files — never commit the local DB
+*.db
+*.sqlite
+*.sqlite3
+instance/
+cmms.db
+
+# Logs
+*.log

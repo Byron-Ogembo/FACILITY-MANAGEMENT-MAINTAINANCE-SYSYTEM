@@ -12,10 +12,14 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 from dotenv import load_dotenv
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
-# SQLite database
-DATABASE = os.path.join(BASE_DIR, 'instance', 'cmms.db')
-# Ensure instance folder exists
-os.makedirs(os.path.join(BASE_DIR, 'instance'), exist_ok=True)
+# SQLite database — use persistent disk on Render, local folder otherwise
+_RENDER_DISK = os.environ.get('RENDER_DISK_PATH', '')
+if _RENDER_DISK:
+    DATABASE = os.path.join(_RENDER_DISK, 'cmms.db')
+    os.makedirs(_RENDER_DISK, exist_ok=True)
+else:
+    DATABASE = os.path.join(BASE_DIR, 'instance', 'cmms.db')
+    os.makedirs(os.path.join(BASE_DIR, 'instance'), exist_ok=True)
 
 # Flask secret key (change in production!)
 SECRET_KEY = os.environ.get('SECRET_KEY', 'tindi-cmms-dev-secret-change-in-production')

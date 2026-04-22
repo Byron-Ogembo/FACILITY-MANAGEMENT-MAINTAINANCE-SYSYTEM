@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: tindi-cmms
+    runtime: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn --worker-class eventlet -w 1 wsgi:app"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true          # Render auto-generates a secure random value
+      - key: RENDER_DISK_PATH
+        value: /data
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+    disk:
+      name: cmms-data
+      mountPath: /data
+      sizeGB: 1                      # Free 1 GB persistent disk

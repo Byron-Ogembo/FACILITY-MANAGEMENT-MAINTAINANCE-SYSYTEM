@@ -8,7 +8,7 @@ Werkzeug==3.0.1
 reportlab==4.0.7
 # QR code generation (server-side fallback)
 qrcode[pil]==7.4.2
-gunicorn
+gunicorn==21.2.0
 python-dotenv==1.0.1
 requests==2.31.0
 Flask-SocketIO==5.3.6
