@@ -14,30 +14,34 @@ from app.utils.security import hash_password
 
 
 def seed():
-    # Check if already seeded
-    if execute_query("SELECT COUNT(*) as c FROM users", fetch_one=True)['c'] > 1:
-        print("Data already seeded. Skipping.")
-        return
+    # Seed data (INSERT OR IGNORE protects against duplicates)
 
-    # Users (password: admin123 for admin, tech123 for technicians)
-    admin_hash = hash_password('admin123')
-    tech_hash = hash_password('tech123')
-    execute_query(
-        "INSERT OR IGNORE INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)",
-        ('Admin', 'admin@cmms.com', admin_hash, 'Admin')
-    )
-    execute_query(
-        "INSERT OR IGNORE INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)",
-        ('John Technician', 'john@cmms.com', tech_hash, 'Technician')
-    )
-    execute_query(
-        "INSERT OR IGNORE INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)",
-        ('Maria Manager', 'maria@cmms.com', hash_password('manager123'), 'Maintenance Manager')
-    )
-    execute_query(
-        "INSERT OR IGNORE INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)",
-        ('Steve Store', 'steve@cmms.com', hash_password('store123'), 'Store Manager')
-    )
+    # 1. Parse USERS_CREDENTIALS.md if it exists, otherwise use fallback defaults
+    creds_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'USERS_CREDENTIALS.md')
+    seeded_users = 0
+    
+    if os.path.exists(creds_path):
+        print(f"Reading users from {creds_path}")
+        with open(creds_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith('|') and not line.startswith('| Name') and not line.startswith('|---'):
+                    parts = [p.strip() for p in line.split('|')[1:-1]]
+                    if len(parts) >= 4:
+                        name, role, email, password = parts[0], parts[1], parts[2], parts[3]
+                        pw_hash = hash_password(password)
+                        execute_query(
+                            "INSERT OR IGNORE INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)",
+                            (name, email, pw_hash, role)
+                        )
+                        seeded_users += 1
+        print(f"Seeded {seeded_users} users from USERS_CREDENTIALS.md")
+    else:
+        print("USERS_CREDENTIALS.md not found! Seeding fallback demo users.")
+        execute_query("INSERT OR IGNORE INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)", ('Admin', 'admin@cmms.com', hash_password('admin123'), 'Admin'))
+        execute_query("INSERT OR IGNORE INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)", ('John Technician', 'john@cmms.com', hash_password('tech123'), 'Technician'))
+        execute_query("INSERT OR IGNORE INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)", ('Maria Manager', 'maria@cmms.com', hash_password('manager123'), 'Maintenance Manager'))
+        execute_query("INSERT OR IGNORE INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)", ('Steve Store', 'steve@cmms.com', hash_password('store123'), 'Store Manager'))
 
     # Equipment (Coca-Cola plant themed)
     equipment = [

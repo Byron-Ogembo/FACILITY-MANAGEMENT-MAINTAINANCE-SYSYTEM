@@ -62,7 +62,7 @@ def add_user():
             flash('Password must be at least 6 characters.', 'danger')
             return redirect(url_for('admin.add_user'))
         pw_hash = hash_password(password)
-        create_user(name, email, pw_hash, role, password)
+        create_user(name, email, pw_hash, role)
         audit_log(session['user_id'], 'CREATE', 'user', None, new_value=f'{name} ({email})')
         flash(f'Staff {name} added. They can sign in with the credentials you provided.', 'success')
         return redirect(url_for('admin.users'))
