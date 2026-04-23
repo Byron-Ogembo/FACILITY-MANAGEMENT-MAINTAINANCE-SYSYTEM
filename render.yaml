@@ -6,12 +6,10 @@ services:
     startCommand: "gunicorn --worker-class eventlet -w 1 wsgi:app"
     envVars:
       - key: SECRET_KEY
-        generateValue: true          # Render auto-generates a secure random value
-      - key: RENDER_DISK_PATH
-        value: /data
+        generateValue: true        # Render auto-generates a secure random value
       - key: PYTHON_VERSION
         value: "3.11.0"
-    disk:
-      name: cmms-data
-      mountPath: /data
-      sizeGB: 1                      # Free 1 GB persistent disk
+      - key: RENDER
+        value: "1"                 # Tells the app it's running on Render (free tier)
+      - key: SEED_ON_START
+        value: "1"                 # Auto-seed demo data on every cold start

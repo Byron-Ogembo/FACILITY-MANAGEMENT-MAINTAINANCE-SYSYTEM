@@ -3,7 +3,8 @@
 from flask import Blueprint, jsonify, session
 from app.routes.auth_routes import login_required
 from database.db import execute_query
-from app.models.notification import get_unread, mark_read, mark_all_read
+from app.models.notification import get_unread, mark_read, mark_all_read, create as create_notification
+from app.services.notification_service import notify_assignment
 
 api_bp = Blueprint('api', __name__)
 
@@ -20,6 +21,59 @@ def dashboard_stats():
         'completed_work_orders': completed_wo,
         'system_status': 'Operational'
     })
+
+
+@api_bp.route('/users', methods=['GET'])
+@login_required
+def get_users_api():
+    from app.models.user import get_all_users
+    return jsonify(get_all_users())
+
+
+@api_bp.route('/equipment', methods=['GET'])
+@login_required
+def get_equipment_api():
+    from app.models.equipment import get_all
+    return jsonify(get_all())
+
+
+@api_bp.route('/inventory', methods=['GET'])
+@login_required
+def get_inventory_api():
+    from app.models.inventory import get_all
+    return jsonify(get_all())
+
+
+@api_bp.route('/work_orders', methods=['GET'])
+@login_required
+def get_work_orders_api():
+    from app.models.work_order import get_all
+    return jsonify(get_all())
+
+
+@api_bp.route('/work_orders', methods=['POST'])
+@login_required
+def create_work_order_api():
+    from flask import request
+    from app.models.work_order import create
+    payload = request.get_json() or {}
+    wo_id = create(
+        payload.get('equipment_id'),
+        payload.get('assigned_to'),
+        payload.get('title', 'New Work Order'),
+        payload.get('description'),
+        payload.get('priority', 'medium'),
+        'pending',
+        session.get('user_id')
+    )
+    if payload.get('assigned_to'):
+        notify_assignment(payload['assigned_to'], {
+            'id': wo_id, 
+            'title': payload.get('title'), 
+            'priority': payload.get('priority'),
+            'description': payload.get('description')
+        })
+    return jsonify({"success": True, "id": wo_id})
 
 
 @api_bp.route('/test/notification', methods=['POST'])
@@ -90,28 +144,24 @@ def send_notification():
     status = 'pending'
     
     # Simple mockup handling of SMS/Email channels for status simulation
+    notif_id = None
     if channel == 'email':
-        ticket_info = execute_query("SELECT title, priority FROM work_orders WHERE id=?", (task_id,), fetch_one=True) or {}
-        tech_info = execute_query("SELECT email FROM users WHERE id=?", (technician_id,), fetch_one=True)
-        if tech_info and ticket_info:
-            # Hardcoded test receiver as requested
-            test_receiver = "byronogembo337@gmail.com" 
-            sent = send_assignment_email(test_receiver, ticket_info)
-            status = 'sent' if sent else 'failed'
+        ticket_info = execute_query("SELECT id, title, priority, description FROM work_orders WHERE id=?", (task_id,), fetch_one=True) or {}
+        notify_assignment(technician_id, ticket_info)
+        status = 'sent'
     elif channel == 'sms':
-        status = 'failed' # SMS gateway not hooked up, default to failed for now
+        status = 'failed' 
     else:
         status = 'sent'
-        
-    notif_id = create(
-        user_id=technician_id,
-        title="Task Update",
-        message=message,
-        type="info",
-        task_id=task_id, 
-        channel=channel, 
-        status=status
-    )
+        notif_id = create_notification(
+            user_id=technician_id,
+            title="Task Update",
+            message=message,
+            type="info",
+            task_id=task_id, 
+            channel=channel, 
+            status=status
+        )
     
     return jsonify({"success": True, "notification_id": notif_id, "status": status})
 
@@ -145,4 +195,40 @@ def get_technician_unread(technician_id):
 def delete_notification(notification_id):
     from app.models.notification import delete
     delete(notification_id)
+    return jsonify({"success": True})
+
+
+@api_bp.route('/contacts', methods=['GET'])
+@login_required
+def get_contacts():
+    contacts = execute_query("SELECT * FROM external_contacts", fetch_all=True)
+    return jsonify(contacts)
+
+
+@api_bp.route('/contacts', methods=['POST'])
+@login_required
+def add_contact():
+    from flask import request
+    payload = request.get_json() or {}
+    name = payload.get('name')
+    email = payload.get('email')
+    org = payload.get('organization')
+    
+    if not name or not email:
+        return jsonify({"success": False, "error": "Name and email required"}), 400
+        
+    try:
+        new_id = execute_query(
+            "INSERT INTO external_contacts (name, email, organization) VALUES (?, ?, ?)",
+            (name, email, org)
+        )
+        return jsonify({"success": True, "id": new_id})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@api_bp.route('/contacts/<int:cid>', methods=['DELETE'])
+@login_required
+def delete_contact(cid):
+    execute_query("DELETE FROM external_contacts WHERE id=?", (cid,))
     return jsonify({"success": True})

@@ -25,4 +25,4 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     # We no longer strictly need allow_unsafe_werkzeug since eventlet will be installed,
     # but eventlet will be picked up automatically by socketio.run
-    socketio.run(app, host='0.0.0.0', port=port, debug=True)
+    socketio.run(app, host='0.0.0.0', port=port, debug=True, allow_unsafe_werkzeug=True)

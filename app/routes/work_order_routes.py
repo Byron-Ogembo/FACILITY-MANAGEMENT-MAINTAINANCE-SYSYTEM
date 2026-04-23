@@ -8,6 +8,7 @@ from app.models.user import get_technicians
 from app.utils.validators import sanitize_string
 from app.models.audit_log import log as audit_log
 from app.models.notification import create as create_notification
+from app.services.notification_service import notify_assignment, emit_realtime_notification
 
 work_order_bp = Blueprint('work_order', __name__)
 
@@ -52,17 +53,8 @@ def add():
                 flash('Technician automatically assigned based on workload.', 'info')
         
         if assigned_to:
-            create_notification(assigned_to, 'New Work Order', f'You were assigned: {title}', 'info')
+            notify_assignment(assigned_to, {'id': wo_id, 'title': title, 'priority': priority, 'description': description})
             
-            # Send Email Asynchronously
-            from app.models.user import get_by_id as get_user
-            user_data = get_user(assigned_to)
-            if user_data and user_data.get('email'):
-                from app.services.notification_service import send_assignment_email
-                import threading
-                threading.Thread(target=send_assignment_email, args=(user_data['email'], {'title': title, 'priority': priority})).start()
-                
-        from app.services.notification_service import emit_realtime_notification
         emit_realtime_notification(broadcast=True, title='New Work Order Alert', message=f'A new work order was created: {title}', n_type='warning')
         
         audit_log(session['user_id'], 'CREATE', 'work_order', wo_id, new_value=title)
@@ -97,7 +89,14 @@ def edit(wo_id):
         status = request.form.get('status', wo['status'])
         notes = sanitize_string(request.form.get('maintenance_notes'), 2000)
         if title:
+            # Check if reassigned
+            old_assigned_to = wo.get('assigned_to')
             update(wo_id, equipment_id, assigned_to, title, description, priority, status, notes)
+            
+            if assigned_to and assigned_to != old_assigned_to:
+                notify_assignment(assigned_to, {'id': wo_id, 'title': title, 'priority': priority, 'description': description})
+                flash('Reassigned and technician notified.', 'info')
+                
             audit_log(session['user_id'], 'UPDATE', 'work_order', wo_id, new_value=title)
             flash('Work order updated.', 'success')
         return redirect(url_for('work_order.list_work_orders'))

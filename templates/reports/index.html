@@ -4,7 +4,15 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 {% endblock %}
 {% block content %}
-<h1 class="mb-4">Reports & Analytics</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Reports & Analytics</h1>
+    <div class="btn-group" role="group">
+        <a href="{{ url_for('reports.index', period='all') }}" class="btn btn-outline-light {{ 'active' if current_period == 'all' else '' }}">All Time</a>
+        <a href="{{ url_for('reports.index', period='1w') }}" class="btn btn-outline-light {{ 'active' if current_period == '1w' else '' }}">1 Week</a>
+        <a href="{{ url_for('reports.index', period='2w') }}" class="btn btn-outline-light {{ 'active' if current_period == '2w' else '' }}">2 Weeks</a>
+        <a href="{{ url_for('reports.index', period='1m') }}" class="btn btn-outline-light {{ 'active' if current_period == '1m' else '' }}">1 Month</a>
+    </div>
+</div>
 <div class="row g-3 mb-4">
     <div class="col-md-3">
         <div class="card">
@@ -56,10 +64,10 @@
 <div class="card">
     <div class="card-header">Export Reports</div>
     <div class="card-body">
-        <a href="{{ url_for('reports.export_csv', type='work_orders') }}" class="btn btn-outline-light me-2"><i class="bi bi-file-earmark-spreadsheet me-1"></i> Export Work Orders (CSV)</a>
-        <a href="{{ url_for('reports.export_csv', type='equipment') }}" class="btn btn-outline-light me-2"><i class="bi bi-file-earmark-spreadsheet me-1"></i> Export Equipment (CSV)</a>
-        <a href="{{ url_for('reports.export_csv', type='inventory') }}" class="btn btn-outline-light me-2"><i class="bi bi-file-earmark-spreadsheet me-1"></i> Export Inventory (CSV)</a>
-        <a href="{{ url_for('reports.export_pdf', type='summary') }}" class="btn btn-outline-danger"><i class="bi bi-file-earmark-pdf me-1"></i> Export Summary (PDF)</a>
+        <a href="{{ url_for('reports.export_csv', type='work_orders', period=current_period) }}" class="btn btn-outline-light me-2"><i class="bi bi-file-earmark-spreadsheet me-1"></i> Export Work Orders (CSV)</a>
+        <a href="{{ url_for('reports.export_csv', type='equipment', period=current_period) }}" class="btn btn-outline-light me-2"><i class="bi bi-file-earmark-spreadsheet me-1"></i> Export Equipment (CSV)</a>
+        <a href="{{ url_for('reports.export_csv', type='inventory', period=current_period) }}" class="btn btn-outline-light me-2"><i class="bi bi-file-earmark-spreadsheet me-1"></i> Export Inventory (CSV)</a>
+        <a href="{{ url_for('reports.export_pdf', type='summary', period=current_period) }}" class="btn btn-outline-danger"><i class="bi bi-file-earmark-pdf me-1"></i> Export Summary (PDF)</a>
     </div>
 </div>
 <script>

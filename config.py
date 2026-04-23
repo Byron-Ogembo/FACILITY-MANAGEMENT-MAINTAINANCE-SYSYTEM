@@ -12,11 +12,17 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 from dotenv import load_dotenv
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
-# SQLite database — use persistent disk on Render, local folder otherwise
-_RENDER_DISK = os.environ.get('RENDER_DISK_PATH', '')
-if _RENDER_DISK:
-    DATABASE = os.path.join(_RENDER_DISK, 'cmms.db')
-    os.makedirs(_RENDER_DISK, exist_ok=True)
+# SQLite database — platform-aware path
+# Vercel:        /tmp (ephemeral)
+# Render free:   /tmp (ephemeral — data resets on cold start, auto-reseeded)
+# Render paid:   persistent disk mounted at RENDER_DISK_PATH (/data)
+# Local:         instance/cmms.db
+if os.environ.get('VERCEL') or (os.environ.get('RENDER') and not os.environ.get('RENDER_DISK_PATH')):
+    DATABASE = '/tmp/cmms.db'
+elif os.environ.get('RENDER_DISK_PATH'):
+    _disk = os.environ['RENDER_DISK_PATH']
+    os.makedirs(_disk, exist_ok=True)
+    DATABASE = os.path.join(_disk, 'cmms.db')
 else:
     DATABASE = os.path.join(BASE_DIR, 'instance', 'cmms.db')
     os.makedirs(os.path.join(BASE_DIR, 'instance'), exist_ok=True)

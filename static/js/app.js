@@ -71,6 +71,9 @@ const App = {
             case '/reports':
                 await this.renderReports();
                 break;
+            case '/contacts':
+                await this.renderContacts();
+                break;
             default:
                 this.root.innerHTML = '<div class="login-container"><h2>404 - Page Not Found</h2></div>';
         }
@@ -83,6 +86,7 @@ const App = {
         workOrders: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>',
         inventory: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>',
         reports: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+        contacts: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
     },
     
     renderLayout(contentHTML) {
@@ -105,6 +109,9 @@ const App = {
                         </a></li>
                         <li><a href="/reports" data-link class="${location.pathname === '/reports' ? 'active' : ''}">
                             <span style="margin-right: 12px; display: flex; align-items: center;">${this.icons.reports}</span> Reports
+                        </a></li>
+                        <li><a href="/contacts" data-link class="${location.pathname === '/contacts' ? 'active' : ''}">
+                            <span style="margin-right: 12px; display: flex; align-items: center;">${this.icons.contacts}</span> Contact List
                         </a></li>
                     </ul>
                     <div class="sidebar-footer">
@@ -688,6 +695,106 @@ const App = {
         `;
         
         this.root.innerHTML = this.renderLayout(content);
+    },
+
+    async renderContacts() {
+        const contacts = await this.api('/contacts') || [];
+        
+        const tableRows = contacts.map(c => `
+            <tr>
+                <td>C-${c.id.toString().padStart(4, '0')}</td>
+                <td style="font-weight: 500">${c.name}</td>
+                <td>${c.email}</td>
+                <td>${c.organization || '-'}</td>
+                <td><span class="badge badge-success">Active</span></td>
+                <td style="white-space: nowrap;">
+                    <button class="btn btn-sm btn-secondary" onclick="window.App.deleteContact(${c.id})" style="border-color: var(--danger); color: var(--danger);">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+        
+        const content = `
+            <header class="page-header">
+                <h1>Notification Contacts</h1>
+                <button class="btn btn-primary" onclick="window.App.openContactModal()">Add New Contact</button>
+            </header>
+            <div class="glass-panel" style="padding: 0; overflow: hidden">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Contact ID</th>
+                                <th>Name</th>
+                                <th>Email Address</th>
+                                <th>Organization</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows.length ? tableRows : '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-secondary)">No external contacts registered.</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+        
+        this.root.innerHTML = this.renderLayout(content);
+    },
+
+    async openContactModal() {
+        const modal = `
+            <div class="modal-backdrop" onclick="if(event.target===this) window.App.closeModal()">
+                <div class="modal glass-panel">
+                    <h2>Add Notification Contact</h2>
+                    <form id="contact-form" style="margin-top: 20px;">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="contact-name" required placeholder="e.g. John Doe">
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" id="contact-email" required placeholder="manager@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Organization / Role</label>
+                            <input type="text" id="contact-org" placeholder="e.g. Plant Manager">
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-top: 30px;">
+                            <button type="submit" class="btn btn-primary">Save Contact</button>
+                            <button type="button" class="btn btn-secondary" onclick="window.App.closeModal()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        document.getElementById('modal-container').innerHTML = modal;
+        
+        document.getElementById('contact-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('contact-name').value,
+                email: document.getElementById('contact-email').value,
+                organization: document.getElementById('contact-org').value
+            };
+            const res = await this.api('/contacts', 'POST', data);
+            if (res && res.success) {
+                this.closeModal();
+                this.renderContacts();
+            } else {
+                alert(res?.error || 'Error saving contact');
+            }
+        });
+    },
+
+    async deleteContact(id) {
+        if (!confirm('Are you sure you want to remove this contact?')) return;
+        const res = await this.api('/contacts/' + id, 'DELETE');
+        if (res && res.success) {
+            this.renderContacts();
+        } else {
+            alert('Error deleting contact');
+        }
     },
 
     closeModal() {
