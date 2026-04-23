@@ -22,18 +22,18 @@ def get_by_id(user_id):
     )
 
 
-def create(name, email, password_hash, role, password):
+def create(name, email, password_hash, role):
     """Create new user. Returns new user id."""
     return execute_query(
-        "INSERT INTO users (name, email, password_hash, role, password) VALUES (?, ?, ?, ?, ?)",
-        (name, email, password_hash, role, password)
+        "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)",
+        (name, email, password_hash, role)
     )
 
 
 def get_all_users():
     """Get all users."""
     return execute_query(
-        "SELECT id, name, email, role, is_active, created_at, password FROM users ORDER BY name",
+        "SELECT id, name, email, role, is_active, created_at FROM users ORDER BY name",
         fetch_all=True
     )
 
