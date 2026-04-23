@@ -232,3 +232,43 @@ def add_contact():
 def delete_contact(cid):
     execute_query("DELETE FROM external_contacts WHERE id=?", (cid,))
     return jsonify({"success": True})
+
+
+@api_bp.route('/test/email', methods=['POST'])
+@login_required
+def test_email():
+    """Send a test email to verify mail configuration on Render."""
+    import os
+    from flask import request, current_app
+    from flask_mail import Message
+    from app.services.notification_service import mail
+
+    payload = request.get_json() or {}
+    to_addr = payload.get('to', os.environ.get('MAIL_USERNAME', 'byronogembo337@gmail.com'))
+
+    if not os.environ.get('MAIL_USERNAME'):
+        return jsonify({"success": False, "error": "MAIL_USERNAME not configured on server"}), 500
+
+    msg = Message(
+        subject="✅ TINDI CMMS – Email Test",
+        sender=os.environ.get('MAIL_USERNAME'),
+        recipients=[to_addr]
+    )
+    msg.html = """
+    <div style="font-family:sans-serif;max-width:600px;margin:auto;padding:24px;
+                border:1px solid #eee;border-radius:10px;">
+        <h2 style="color:#e63946;">TINDI CMMS – Email Delivery Test</h2>
+        <p>
+            This is a <strong>test email</strong> confirming that the mail system
+            on Render is working correctly.
+        </p>
+        <p style="color:#555;font-size:13px;">Sent from: TINDI CMMS | Coca-Cola Plant</p>
+    </div>
+    """
+    try:
+        with current_app.app_context():
+            mail.send(msg)
+        return jsonify({"success": True, "message": f"Test email sent to {to_addr}"})
+    except Exception as e:
+        print(f"Test email failed: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
